@@ -1,91 +1,100 @@
 package io.github.riotgames.leagueoflegends.infrastructure.input.controller.advice
 
+import io.github.riotgames.leagueoflegends.domain.exception.BusinessException
+import io.github.riotgames.leagueoflegends.domain.exception.ResourceNotFoundException
 import io.github.riotgames.leagueoflegends.infrastructure.input.controller.error.ApiErrorResponse
 import io.github.riotgames.leagueoflegends.infrastructure.input.controller.error.ErrorCode
-import io.github.riotgames.leagueoflegends.infrastructure.input.controller.mapper.ExceptionHttpMapper
-import io.github.riotgames.leagueoflegends.infrastructure.input.controller.error.HttpExceptionMetadata
+import io.github.riotgames.leagueoflegends.infrastructure.input.controller.factory.ApiErrorResponseFactory
 import jakarta.servlet.http.HttpServletRequest
-import org.apache.coyote.BadRequestException
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.validation.FieldError
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
-class GlobalExceptionHandler {
+class GlobalExceptionHandler(
+    private val apiErrorFactory: ApiErrorResponseFactory
+) {
+
+    val logger = LoggerFactory.getLogger(this::class.java)
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleSpringValidation(
         ex: MethodArgumentNotValidException,
         request: HttpServletRequest
     ): ResponseEntity<ApiErrorResponse> {
-
-        val details = ex.bindingResult
-            .allErrors
-            .filterIsInstance<FieldError>()
+        val details = ex.bindingResult.fieldErrors
             .map { "${it.field}: ${it.defaultMessage}" }
 
-        val metadata = HttpExceptionMetadata(
+        return apiErrorFactory.build(
             status = HttpStatus.BAD_REQUEST,
             code = ErrorCode.VALIDATION_ERROR,
-            message = "Erro de validação nos campos enviados",
-            details = details
-        )
-
-        val apiError = ApiErrorResponse(
-            status = metadata.status.value(),
-            error = metadata.status.reasonPhrase,
-            code = metadata.code,
-            message = metadata.message,
+            message = "Erro de validação nos campos da requisição.",
             path = request.requestURI,
-            details = metadata.details
-        )
+            details = details
 
-        return ResponseEntity(apiError, metadata.status)
+        )
     }
 
-    @ExceptionHandler(BadRequestException::class)
-    fun handleBadRequestException(
-        ex: BadRequestException,
+    @ExceptionHandler(BusinessException::class)
+    fun handleBusinessException(
+        ex: BusinessException,
         request: HttpServletRequest
     ): ResponseEntity<ApiErrorResponse> {
-        val metadata = HttpExceptionMetadata(
-            status = HttpStatus.BAD_REQUEST,
+
+        return apiErrorFactory.build(
+            status = HttpStatus.UNPROCESSABLE_ENTITY,
             code = ErrorCode.BUSINESS_ERROR,
-            message = ex.message ?: "Bad Request",
-            details = emptyList()
-        )
-
-        val apiError = ApiErrorResponse(
-            status = metadata.status.value(),
-            error = metadata.status.reasonPhrase,
-            code = metadata.code,
-            message = metadata.message,
+            message = ex.message,
             path = request.requestURI,
-            details = metadata.details
+            details = listOf(ex.toString())
         )
+    }
 
-        return ResponseEntity(apiError, metadata.status)
+    @ExceptionHandler(ResourceNotFoundException::class)
+    fun handleResourceNotFound(
+        ex: ResourceNotFoundException,
+        request: HttpServletRequest
+    ): ResponseEntity<ApiErrorResponse> {
+        return apiErrorFactory.build(
+            status = HttpStatus.NOT_FOUND,
+            code = ErrorCode.RESOURCE_NOT_FOUND,
+            message = ex.message,
+            path = request.requestURI,
+            details = listOf(ex.toString())
+        )
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleJsonErrors(
+        ex: HttpMessageNotReadableException,
+        request: HttpServletRequest
+    ): ResponseEntity<ApiErrorResponse> {
+        return apiErrorFactory.build(
+            status = HttpStatus.BAD_REQUEST,
+            code = ErrorCode.BAD_REQUEST,
+            message = "O corpo da requisição está inválido ou mal formatado. Verifique os campos obrigatórios e tipos de dados.",
+            path = request.requestURI,
+            details = listOf(ex.toString())
+        )
     }
 
     @ExceptionHandler(Exception::class)
-    fun handleAnyException(
+    fun handleGenericException(
         ex: Exception,
         request: HttpServletRequest
     ): ResponseEntity<ApiErrorResponse> {
-        val metadata = ExceptionHttpMapper.map(ex)
+        logger.error("Erro não tratado: ", ex)
 
-        val apiError = ApiErrorResponse(
-            status = metadata.status.value(),
-            error = metadata.status.reasonPhrase,
-            code = metadata.code,
-            message = metadata.message,
+        return apiErrorFactory.build(
+            status = HttpStatus.INTERNAL_SERVER_ERROR,
+            code = ErrorCode.UNEXPECTED_ERROR,
+            message = "Erro interno. Contate o admin.",
             path = request.requestURI,
-            details = metadata.details
+            details = listOf(ex.toString())
         )
-
-        return ResponseEntity(apiError, metadata.status)
     }
 }
