@@ -41,4 +41,4 @@ out/
 
 
 ### ENV Files ###
-.env
+/.env
