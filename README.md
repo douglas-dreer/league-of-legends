@@ -2,10 +2,12 @@
 
 API REST para consulta de dados de campeões e versões do **League of Legends**, utilizando a **Data Dragon API** da Riot Games.
 
+![Versão](https://img.shields.io/badge/Versão-1.1.0-blue)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-purple?logo=kotlin)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.1-green?logo=springboot)
 ![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql)
+![Licença](https://img.shields.io/badge/Licença-MIT-green)
 
 ---
 
@@ -20,6 +22,7 @@ API REST para consulta de dados de campeões e versões do **League of Legends**
 - [Endpoints](#-endpoints)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Status do Desenvolvimento](#-status-do-desenvolvimento)
+- [Changelog](#-changelog)
 
 ---
 
@@ -40,33 +43,33 @@ O projeto segue a **Arquitetura Hexagonal** (Clean Architecture):
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                      INFRASTRUCTURE                              │
+│                      INFRASTRUCTURE                             │
 │  ┌──────────────────────────────────────────────────────────┐   │
-│  │                    INPUT ADAPTERS                         │   │
-│  │  • Controllers (REST API)                                 │   │
+│  │                    INPUT ADAPTERS                        │   │
+│  │  • Controllers (REST API)                                │   │
 │  │  • Schedulers (Jobs Agendados)                           │   │
-│  │  • Event Listeners                                        │   │
+│  │  • Event Listeners                                       │   │
 │  └──────────────────────────────────────────────────────────┘   │
-│                              │                                   │
-│                              ▼                                   │
+│                              │                                  │
+│                              ▼                                  │
 │  ┌──────────────────────────────────────────────────────────┐   │
-│  │                     APPLICATION                           │   │
-│  │  • Use Cases (Services)                                   │   │
-│  │  • Validators                                             │   │
+│  │                     APPLICATION                          │   │
+│  │  • Use Cases (Services)                                  │   │
+│  │  • Validators                                            │   │
 │  └──────────────────────────────────────────────────────────┘   │
-│                              │                                   │
-│                              ▼                                   │
+│                              │                                  │
+│                              ▼                                  │
 │  ┌──────────────────────────────────────────────────────────┐   │
-│  │                       DOMAIN                              │   │
-│  │  • Models (Entities)                                      │   │
-│  │  • Ports (Interfaces)                                     │   │
-│  │  • Enums                                                  │   │
-│  │  • Mappers                                                │   │
+│  │                       DOMAIN                             │   │
+│  │  • Models (Entities)                                     │   │
+│  │  • Ports (Interfaces)                                    │   │
+│  │  • Enums                                                 │   │
+│  │  • Mappers                                               │   │
 │  └──────────────────────────────────────────────────────────┘   │
-│                              │                                   │
-│                              ▼                                   │
+│                              │                                  │
+│                              ▼                                  │
 │  ┌──────────────────────────────────────────────────────────┐   │
-│  │                    OUTPUT ADAPTERS                        │   │
+│  │                    OUTPUT ADAPTERS                       │   │
 │  │  • Feign Clients (API Externa)                           │   │
 │  │  • JPA Repositories (Banco de Dados)                     │   │
 │  └──────────────────────────────────────────────────────────┘   │
@@ -87,6 +90,7 @@ O projeto segue a **Arquitetura Hexagonal** (Clean Architecture):
 | **ORM** | Spring Data JPA / Hibernate | - |
 | **HTTP Client** | Spring Cloud OpenFeign | 2025.1.0 |
 | **Scheduler** | Spring Quartz | - |
+| **Resiliência** | Resilience4j (Circuit Breaker) | - |
 | **Serialização** | Jackson | - |
 | **Containerização** | Docker / Docker Compose | - |
 
@@ -101,9 +105,11 @@ O projeto segue a **Arquitetura Hexagonal** (Clean Architecture):
 - [x] Sincronização manual de versões via endpoint
 - [x] Sistema de eventos para atualização de versão corrente
 - [x] Integração com Data Dragon API
+- [x] **Tratamento global de erros** com respostas padronizadas
+- [x] **Hierarquia de exceções** de domínio e aplicação
+- [x] **Proteção de detalhes sensíveis** em produção
 
 ### Em Desenvolvimento 🚧
-- [ ] Tratamento global de erros
 - [ ] Testes unitários e de integração
 - [ ] Documentação OpenAPI/Swagger
 - [ ] Cache de requisições
@@ -129,6 +135,7 @@ cd league-of-legends
 
 ### 2. Configure as variáveis de ambiente
 Crie um arquivo `.env` na raiz do projeto:
+
 ```env
 DATABASE_NAME=lol_db
 DATABASE_USERNAME=postgres
@@ -162,6 +169,7 @@ A API estará disponível em: `http://localhost:8080`
 | `GET` | `/api/v1/champions` | Lista todos os campeões |
 
 **Parâmetros de Query:**
+
 | Parâmetro | Tipo | Default | Descrição |
 |-----------|------|---------|-----------|
 | `pageSize` | int | 50 | Quantidade de itens |
@@ -202,17 +210,35 @@ src/main/kotlin/io/github/riotgames/leagueoflegends/
 │   │   └── output/                      # Repositórios/Clients
 │   ├── enums/
 │   │   └── OrderType.kt
+│   ├── exception/                       # Exceções de Domínio
+│   │   ├── DomainException.kt
+│   │   ├── BusinessException.kt
+│   │   ├── ResourceNotFoundException.kt
+│   │   ├── ValidationException.kt
+│   │   └── ExternalServiceUnavailableException.kt
 │   └── mapper/                          # Conversões de domínio
 │
 ├── application/                         # Camada de Aplicação
 │   ├── usecase/                         # Implementações dos casos de uso
 │   │   ├── champion/
 │   │   └── version/
+│   ├── exception/                       # Exceções de Aplicação
+│   │   ├── VersionIsAlreadyRegisteredException.kt
+│   │   ├── VersionNotFoundRegisteredException.kt
+│   │   └── VersionNotFoundToSynchronizeException.kt
 │   └── validation/                      # Validadores
 │
 └── infrastructure/                      # Camada de Infraestrutura
     ├── input/                           # Adaptadores de entrada
     │   ├── controller/                  # REST Controllers
+    │   │   ├── advice/                  # Exception Handlers
+    │   │   │   └── GlobalExceptionHandler.kt
+    │   │   ├── error/                   # DTOs de Erro
+    │   │   │   ├── ApiErrorResponse.kt
+    │   │   │   ├── ErrorCode.kt
+    │   │   │   └── HttpExceptionMetadata.kt
+    │   │   └── factory/                 # Factories
+    │   │       └── ApiErrorResponseFactory.kt
     │   ├── listener/                    # Event Listeners
     │   └── schedule/                    # Jobs Agendados
     ├── output/                          # Adaptadores de saída (API externa)
@@ -236,10 +262,24 @@ src/main/kotlin/io/github/riotgames/leagueoflegends/
 | Sincronização Versões | ✅ Completo | Automática + Manual |
 | PostgreSQL | ✅ Configurado | Docker Compose |
 | Event-Driven | ✅ Completo | Spring Events |
-| Tratamento de Erros | 🚧 Pendente | - |
+| Tratamento de Erros | ✅ Completo | GlobalExceptionHandler |
 | Testes | 🚧 Pendente | Apenas context test |
 | Documentação API | 🚧 Pendente | - |
 | CI/CD | 🚧 Pendente | - |
+
+---
+
+## 📋 Changelog
+
+Para ver o histórico completo de alterações, consulte o arquivo [CHANGELOG.md](CHANGELOG.md).
+
+### Versão Atual: 1.1.0
+
+**Novidades desta versão:**
+- ✅ Sistema global de tratamento de erros (`GlobalExceptionHandler`)
+- ✅ Respostas de erro padronizadas (`ApiErrorResponse`)
+- ✅ Hierarquia de exceções de domínio e aplicação
+- ✅ Proteção de detalhes sensíveis em produção
 
 ---
 
