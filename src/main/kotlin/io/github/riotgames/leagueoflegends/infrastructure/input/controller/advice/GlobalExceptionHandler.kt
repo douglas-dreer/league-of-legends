@@ -1,6 +1,7 @@
 package io.github.riotgames.leagueoflegends.infrastructure.input.controller.advice
 
 import io.github.riotgames.leagueoflegends.domain.exception.BusinessException
+import io.github.riotgames.leagueoflegends.domain.exception.ExternalServiceUnavailableException
 import io.github.riotgames.leagueoflegends.domain.exception.ResourceNotFoundException
 import io.github.riotgames.leagueoflegends.infrastructure.input.controller.error.ApiErrorResponse
 import io.github.riotgames.leagueoflegends.infrastructure.input.controller.error.ErrorCode
@@ -95,6 +96,20 @@ class GlobalExceptionHandler(
             message = "Erro interno. Contate o admin.",
             path = request.requestURI,
             details = listOf(ex.toString())
+        )
+    }
+
+    @ExceptionHandler(ExternalServiceUnavailableException::class)
+    fun handleExternalServiceError(
+        ex: ExternalServiceUnavailableException,
+        request: HttpServletRequest
+    ): ResponseEntity<ApiErrorResponse> {
+
+        return apiErrorFactory.build(
+            status = HttpStatus.SERVICE_UNAVAILABLE, // 503!
+            code = ErrorCode.DEPENDENCY_ERROR,
+            message = ex.message,
+            path = request.requestURI
         )
     }
 }
