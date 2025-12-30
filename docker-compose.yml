@@ -1,0 +1,32 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    container_name: ${CONTAINER_NAME:-lol-db}
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      POSTGRES_DB: ${DATABASE_NAME:-lol_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - petshop-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME:-postgres} -d ${DATABASE_NAME:--lol_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+# Networks
+networks:
+  lol-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  postgres-data:
+    driver: local
