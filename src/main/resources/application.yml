@@ -20,6 +20,10 @@ spring:
 
   config:
     import: optional:file:.env[.properties]
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
 logging:
   level:
     org:
@@ -28,6 +32,19 @@ logging:
         orm:
           jdbc:
             bind: TRACE
+
+resilience4j:
+  retry:
+    instances:
+      ddragon-client:
+        max-attempts: ${RESILIENCE4J_MAX_ATTEMPTS}
+        wait-duration: ${RESILIENCE4J_WAIT_DURATION}
+        enable-exponential-backoff: ${RESILIENCE4J_ENABLE_EXPONENTIAL_BACKOFF}
+        retry-exceptions:
+          - feign.FeignException # Só tenta de novo se for erro do Feign
+          - java.io.IOException
+        ignore-exceptions:
+          - io.github.riotgames.leagueoflegends.domain.exception.BusinessException
 ddragon:
   api:
-    url: https://ddragon.leagueoflegends.com
+    url: ${DDRAGON_API_URL:https://ddragon.leagueoflegends.com}
