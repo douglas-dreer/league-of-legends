@@ -17,6 +17,34 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ---
 
+## 🚀 [1.3.0] - 2025-12-31
+
+### ✨ Adicionado
+- **Novos Testes de Integração**
+  - 🧪 `VersionClientAdapterIT` - Teste de integração do client de versões
+  - 🧪 `VersionRepositoryAdapterIT` - Teste de integração do repositório
+  - 🧪 `VersionRepositoryAdapterTest` - Teste unitário do repositório adapter
+
+- **Análise de Código**
+  - 📊 SonarQube configurado para análise estática de código
+  - Plugin `org.sonarqube` versão 5.0.0.4638 adicionado
+
+### 🔧 Alterado
+- **Endpoint de Sincronização**
+  - `SynchronizeVersionsController` agora usa `POST` em vez de `GET`
+  - Melhor semântica REST para operações de escrita
+
+- **Documentação**
+  - 📝 README.md atualizado com seção de Testes
+  - 📝 Tabela de status atualizada
+
+### 🐛 Corrigido
+- **Dockerfile**: Atualizado para usar JRE 21 (estava com JRE 17)
+- **docker-compose.yml**: Network corrigida de `petshop-network` para `lol-network`
+- **Comentário Dockerfile**: Corrigido nome do projeto no comentário
+
+---
+
 ## 🚀 [1.2.0] - 2025-12-31
 
 ### ✨ Adicionado

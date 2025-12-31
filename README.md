@@ -2,7 +2,7 @@
 
 API REST para consulta de dados de campeões e versões do **League of Legends**, utilizando a **Data Dragon API** da Riot Games.
 
-![Versão](https://img.shields.io/badge/Versão-1.2.0-blue)
+![Versão](https://img.shields.io/badge/Versão-1.3.0-blue)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-purple?logo=kotlin)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.1-green?logo=springboot)
 ![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
@@ -190,8 +190,13 @@ curl "http://localhost:8080/api/v1/champions?pageSize=10&order=DESC&language=pt_
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `GET` | `/api/v1/admin/versions/import` | Sincroniza versões da API externa |
+| `POST` | `/api/v1/admin/versions/import` | Sincroniza versões da API externa |
 | `POST` | `/api/v1/versions` | Cria uma nova versão manualmente |
+
+**Exemplo - Sincronizar versões:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/admin/versions/import"
+```
 
 **Exemplo - Criar versão:**
 ```bash
@@ -320,14 +325,45 @@ src/main/kotlin/io/github/riotgames/leagueoflegends/
 |------------|--------|------------|
 | Arquitetura Hexagonal | ✅ Completo | Bem estruturado |
 | CRUD Champions | ✅ Completo | Via API externa |
-| Sincronização Versões | ✅ Completo | Automática + Manual |
+| Sincronização Versões | ✅ Completo | Automática + Manual (POST) |
 | Criação de Versões | ✅ Completo | POST /api/v1/versions |
 | PostgreSQL | ✅ Configurado | Docker Compose |
 | Event-Driven | ✅ Completo | Spring Events |
 | Tratamento de Erros | ✅ Completo | GlobalExceptionHandler |
-| Testes | ✅ Em progresso | Unitários + Integração |
+| Testes | ✅ Completo | Unitários + Integração |
+| SonarQube | ✅ Configurado | Análise de código |
 | Documentação API | 🚧 Pendente | OpenAPI/Swagger |
 | CI/CD | 🚧 Pendente | - |
+
+---
+
+## 🧪 Testes
+
+O projeto possui uma suíte completa de testes:
+
+### Testes Unitários
+- `CreateVersionServiceTest` - Criação de versões
+- `SynchronizeVersionsServiceTest` - Sincronização de versões
+- `VersionRepositoryAdapterTest` - Adapter de repositório
+
+### Testes de Integração (Testcontainers)
+- `CreateVersionServiceIT` - Criação de versões
+- `SynchronizeVersionsServiceIT` - Sincronização de versões
+- `FindVersionNumberServiceIT` - Busca de versões
+- `VersionClientAdapterIT` - Client de versões
+- `VersionRepositoryAdapterIT` - Repositório de versões
+
+**Executar testes:**
+```bash
+# Todos os testes
+./gradlew test
+
+# Apenas testes unitários
+./gradlew test --tests "*Test"
+
+# Apenas testes de integração
+./gradlew test --tests "*IT"
+```
 
 ---
 
@@ -335,13 +371,14 @@ src/main/kotlin/io/github/riotgames/leagueoflegends/
 
 Para ver o histórico completo de alterações, consulte o arquivo [CHANGELOG.md](CHANGELOG.md).
 
-### Versão Atual: 1.2.0
+### Versão Atual: 1.3.0
 
 **Novidades desta versão:**
-- ✅ Padronização de comentários e documentação em inglês (en-EN)
-- ✅ Documentação técnica completa com diagramas Mermaid
-- ✅ Testes unitários e de integração implementados
-- ✅ Melhorias gerais na documentação do projeto
+- ✅ Endpoint de sincronização corrigido para `POST`
+- ✅ Novos testes de integração para adapters
+- ✅ Correção do Dockerfile para Java 21
+- ✅ Correção do docker-compose.yml (network)
+- ✅ SonarQube configurado para análise de código
 
 ---
 
