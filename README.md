@@ -7,7 +7,7 @@ API REST para consulta de dados de campeões e versões do **League of Legends**
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.1-green?logo=springboot)
 ![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql)
-![Licença](https://img.shields.io/badge/Licença-MIT-green)
+![Licença: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)
 
 ### 📊 Qualidade de Código
 
