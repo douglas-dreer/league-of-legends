@@ -10,11 +10,43 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ## 🔮 [Não Publicado]
 
 ### 🚧 Em Desenvolvimento
-- 🧪 Testes unitários e de integração
 - 📖 Documentação OpenAPI/Swagger
-- ⚡ Cache de requisições
-- 🔐 Autenticação e autorização
-- 📊 Métricas e observabilidade avançada
+- ⚡ Cache de requisições com Redis/Caffeine
+- 🔐 Autenticação e autorização com Spring Security
+- 📊 Métricas e observabilidade avançada com Micrometer
+
+---
+
+## 🚀 [1.2.0] - 2025-12-31
+
+### ✨ Adicionado
+- **Documentação Técnica Completa**
+  - 📐 `docs/ARQUITETURA.md` - Diagramas de arquitetura com Mermaid
+  - 📚 `docs/API_REFERENCE.md` - Referência completa da API REST
+  - 🔄 Diagramas de fluxo, sequência e classes
+
+- **Testes Automatizados**
+  - 🧪 Testes unitários para `CreateVersionService`
+  - 🧪 Testes unitários para `SynchronizeVersionsService`
+  - 🔬 Testes de integração com Testcontainers
+  - 📦 Fixtures e factories para geração de dados de teste
+
+### 🔧 Alterado
+- **Padronização de Idioma**
+  - 🌐 Todos os comentários KDoc traduzidos para inglês (en-EN)
+  - 🌐 Mensagens de log padronizadas em inglês
+  - 🌐 Mensagens de erro da API em inglês
+
+- **Documentação**
+  - 📝 README.md completamente atualizado
+  - 📝 Adicionada seção de Tratamento de Erros
+  - 📝 Adicionada seção de Documentação Técnica
+  - 📝 Novo endpoint POST /api/v1/versions documentado
+
+### 📚 Documentação
+- Novo índice com links para documentação técnica
+- Diagrama de hierarquia de exceções
+- Tabela de códigos de erro HTTP
 
 ---
 
@@ -39,6 +71,11 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
   - `VersionIsAlreadyRegisteredException` - Versão já registrada
   - `VersionNotFoundRegisteredException` - Versão não encontrada no banco
   - `VersionNotFoundToSynchronizeException` - Versão não encontrada para sincronização
+
+- **Novo Endpoint**
+  - `POST /api/v1/versions` - Criação manual de versões
+  - `CreateVersionController` - Controller para criação de versões
+  - `CreateVersionRequest` - DTO de requisição com validação
 
 ### 🔧 Alterado
 - Melhoria na estrutura de controllers com separação de concerns
@@ -102,10 +139,19 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ---
 
-## 📌 Links
+## 📊 Legenda
 
-[Não Publicado]: https://github.com/seu-usuario/league-of-legends/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/seu-usuario/league-of-legends/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/seu-usuario/league-of-legends/compare/v0.1.0...v1.0.0
-[0.1.0]: https://github.com/seu-usuario/league-of-legends/releases/tag/v0.1.0
+| Emoji | Tipo de Mudança |
+|-------|-----------------|
+| ✨ | Nova funcionalidade |
+| 🔧 | Alteração/Melhoria |
+| 🐛 | Correção de bug |
+| 🗑️ | Remoção |
+| 🛡️ | Segurança |
+| 📚 | Documentação |
+| ⚙️ | Configuração |
+| 🚧 | Em desenvolvimento |
 
+---
+
+> 📖 **Referência:** [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/) | [Semantic Versioning](https://semver.org/lang/pt-BR/)

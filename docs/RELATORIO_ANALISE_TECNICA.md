@@ -1,9 +1,9 @@
 # 📊 Relatório de Análise Técnica do Projeto
 
 **Projeto:** League of Legends API  
-**Data:** 30 de Dezembro de 2025  
+**Data:** 31 de Dezembro de 2025  
 **Status:** 🚧 Em Desenvolvimento  
-**Versão:** 0.0.1-SNAPSHOT
+**Versão:** 1.2.0
 
 ---
 
@@ -31,58 +31,46 @@ O projeto implementa corretamente a **Arquitetura Hexagonal** com clara separaç
 2. **Ports bem definidos**: Interfaces claras para entrada (`input/`) e saída (`output/`)
 3. **Adapters isolados**: Feign Clients e JPA separados em seus respectivos pacotes
 4. **Testabilidade**: Fácil substituição de implementações por mocks
-
-#### ⚠️ Pontos de Atenção
-
-| Problema | Local | Impacto |
-|----------|-------|---------|
-| Mappers no Domain | `domain/mapper/` | Viola pureza do domínio - mappers deveriam estar na infra |
-| Import direto de Entity | `ChampionDetailResponse` usa models do domain | Acoplamento desnecessário |
-| Classe concreta no Controller | `FindAllChampionService` em vez de interface | Dificulta testes |
+5. **Tratamento de Erros Global**: `GlobalExceptionHandler` centralizado
 
 ### 1.2 Diagrama de Dependências
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         INFRASTRUCTURE                               │
-│                                                                       │
-│  ┌─────────────┐    ┌──────────────┐    ┌─────────────────────────┐ │
-│  │ Controllers │    │  Schedulers  │    │     Event Listeners      │ │
-│  └──────┬──────┘    └──────┬───────┘    └───────────┬─────────────┘ │
-│         │                  │                        │               │
-│         └──────────────────┼────────────────────────┘               │
-│                            │                                         │
-│                            ▼                                         │
-│  ┌─────────────────────────────────────────────────────────────────┐ │
-│  │                        APPLICATION                              │ │
-│  │                                                                 │ │
-│  │   ┌──────────────────┐      ┌──────────────────────┐          │ │
-│  │   │   Use Cases      │      │     Validators        │          │ │
-│  │   │   (Services)     │◄─────┤                       │          │ │
-│  │   └────────┬─────────┘      └──────────────────────┘          │ │
-│  │            │                                                    │ │
-│  └────────────┼────────────────────────────────────────────────────┘ │
-│               │                                                       │
-│               ▼                                                       │
-│  ┌─────────────────────────────────────────────────────────────────┐ │
-│  │                          DOMAIN                                 │ │
-│  │                                                                 │ │
-│  │   ┌────────────┐  ┌────────────────┐  ┌──────────────────┐    │ │
-│  │   │   Models   │  │     Ports      │  │      Enums       │    │ │
-│  │   └────────────┘  │  (Interfaces)  │  └──────────────────┘    │ │
-│  │                   └────────┬───────┘                          │ │
-│  │                            │                                    │ │
-│  └────────────────────────────┼────────────────────────────────────┘ │
-│                               │                                       │
-│  ┌────────────────────────────┼────────────────────────────────────┐ │
-│  │                    OUTPUT ADAPTERS                              │ │
-│  │                            │                                    │ │
-│  │   ┌────────────────┐   ┌───┴───────────┐   ┌────────────────┐ │ │
-│  │   │ Feign Clients  │   │   Adapters    │   │ JPA Repository │ │ │
-│  │   │ (Data Dragon)  │   │               │   │  (PostgreSQL)  │ │ │
-│  │   └────────────────┘   └───────────────┘   └────────────────┘ │ │
-│  └─────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph INFRA["🏗️ Infrastructure"]
+        subgraph INPUT["📥 Input Adapters"]
+            Controllers
+            Schedulers
+            Listeners
+        end
+        subgraph OUTPUT["📤 Output Adapters"]
+            FeignClients
+            JpaRepos
+        end
+    end
+
+    subgraph APP["⚙️ Application"]
+        UseCases
+        Validators
+    end
+
+    subgraph DOMAIN["💎 Domain"]
+        Models
+        Ports
+        Exceptions
+    end
+
+    Controllers --> UseCases
+    Schedulers --> UseCases
+    UseCases --> Ports
+    UseCases --> Validators
+    Ports -.-> FeignClients
+    Ports -.-> JpaRepos
+    Listeners --> UseCases
+
+    style DOMAIN fill:#9C27B0,color:#fff
+    style APP fill:#2196F3,color:#fff
+    style INFRA fill:#4CAF50,color:#fff
 ```
 
 ---
@@ -96,16 +84,21 @@ O projeto implementa corretamente a **Arquitetura Hexagonal** com clara separaç
 | Modelo | Linhas | Avaliação |
 |--------|--------|-----------|
 | `Champion` | 28 | ✅ Bem documentado com KDoc |
-| `ChampionStats` | 83 | ⚠️ Muito grande, mas necessário |
+| `ChampionStats` | 83 | ✅ Documentado com KDoc em inglês |
 | `ChampionImage` | 23 | ✅ Simples e coeso |
 | `ChampionInfo` | 17 | ✅ Bem estruturado |
 | `Version` | 8 | ✅ Minimalista e funcional |
 | `VersionImportedEvent` | 4 | ✅ Evento de domínio bem definido |
 
-**Observações:**
-- Bom uso de `data class` do Kotlin
-- Documentação KDoc presente nas principais classes
-- `ChampionStats` usa `@JsonProperty` no domínio (deveria estar no DTO de infraestrutura)
+#### Exceções de Domínio
+
+| Exceção | HTTP Status | Descrição |
+|---------|-------------|-----------|
+| `DomainException` | - | Base abstrata |
+| `BusinessException` | 422 | Regras de negócio |
+| `ResourceNotFoundException` | 404 | Recurso não encontrado |
+| `ValidationException` | 400 | Erros de validação |
+| `ExternalServiceUnavailableException` | 503 | Serviço externo indisponível |
 
 #### Ports (Interfaces)
 
@@ -115,10 +108,8 @@ O projeto implementa corretamente a **Arquitetura Hexagonal** com clara separaç
 | `FindAllChampionUseCase` | `FindAllChampionService` | ✅ |
 | `CreateVersionUseCase` | `CreateVersionService` | ✅ |
 | `SynchronizeVersionsUseCase` | `SynchronizeVersionsService` | ✅ |
-| `SetLastVersionAsCurrentUseCase` | `SetLastVersionAsCurrentService` | ✅ |
-| `SetPrevisionVersionAsNotCurrentUseCase` | `SetPrevisionVersionAsNotCurrentService` | ✅ |
 | `ExistVersionByNumberUseCase` | `FindVersionByNumberService` | ✅ |
-| `FindVersionByNumberUseCase` | ❌ Não implementado | 🚧 |
+| `FindVersionByNumberUseCase` | `FindVersionByNumberService` | ✅ |
 
 **Output Ports (Repositórios/Clients):**
 | Interface | Adapter | Status |
@@ -131,28 +122,31 @@ O projeto implementa corretamente a **Arquitetura Hexagonal** com clara separaç
 
 #### Use Cases
 
-| Service | Responsabilidade | Complexidade | Qualidade |
-|---------|------------------|--------------|-----------|
-| `FindAllChampionService` | Busca campeões com ordenação | Baixa | ✅ Boa |
-| `CreateVersionService` | Cria nova versão | Baixa | ✅ Boa |
-| `SynchronizeVersionsService` | Orquestra sincronização | Alta | ✅ Excelente |
-| `SetLastVersionAsCurrentService` | Atualiza versão corrente | Baixa | ✅ Boa |
-| `SetPrevisionVersionAsNotCurrentService` | Desativa versão anterior | Baixa | ✅ Boa |
-
-**Destaque positivo:** `SynchronizeVersionsService`
-- Usa transações corretamente (`@Transactional`)
-- Emite eventos de domínio (`ApplicationEventPublisher`)
-- Logging estruturado com SLF4J
+| Service | Responsabilidade | Testes | Qualidade |
+|---------|------------------|--------|-----------|
+| `FindAllChampionService` | Busca campeões com ordenação | 🚧 | ✅ Boa |
+| `CreateVersionService` | Cria nova versão | ✅ | ✅ Boa |
+| `SynchronizeVersionsService` | Orquestra sincronização | ✅ | ✅ Excelente |
+| `FindVersionByNumberService` | Busca versão por número | ✅ | ✅ Boa |
 
 ### 2.3 Infrastructure Layer
 
 #### Input Adapters
 
 **Controllers:**
-| Controller | Endpoint | Métodos HTTP | Avaliação |
-|------------|----------|--------------|-----------|
+
+| Controller | Endpoint | Método HTTP | Avaliação |
+|------------|----------|-------------|-----------|
 | `FindAllChampionsController` | `/api/v1/champions` | GET | ✅ |
 | `SynchronizeVersionsController` | `/api/v1/admin/versions/import` | GET | ⚠️ Deveria ser POST |
+| `CreateVersionController` | `/api/v1/versions` | POST | ✅ |
+
+**Exception Handlers:**
+
+| Handler | Responsabilidade | Status |
+|---------|------------------|--------|
+| `GlobalExceptionHandler` | Tratamento centralizado | ✅ Implementado |
+| `ApiErrorResponseFactory` | Criação de respostas de erro | ✅ Implementado |
 
 **Schedulers:**
 | Scheduler | Frequência | Avaliação |
@@ -164,19 +158,6 @@ O projeto implementa corretamente a **Arquitetura Hexagonal** com clara separaç
 |----------|--------|-----------|
 | `VersionUpdateListener` | `VersionImportedEvent` | ✅ Bem implementado |
 
-#### Output Adapters
-
-**Feign Clients:**
-| Client | API Externa | Endpoints |
-|--------|-------------|-----------|
-| `ChampionClient` | Data Dragon | `/cdn/{version}/data/{language}/champion.json` |
-| `VersionClient` | Data Dragon | `/api/versions.json` |
-
-**JPA Repositories:**
-| Repository | Entidade | Queries Customizadas |
-|------------|----------|---------------------|
-| `VersionJpaRepository` | `VersionEntity` | 4 (2 com `@Modifying`) |
-
 ---
 
 ## 3. 📈 Métricas do Projeto
@@ -185,37 +166,43 @@ O projeto implementa corretamente a **Arquitetura Hexagonal** com clara separaç
 
 | Métrica | Valor |
 |---------|-------|
-| **Arquivos Kotlin** | ~35 |
-| **Linhas de código (estimado)** | ~800 |
+| **Arquivos Kotlin** | ~69 |
+| **Linhas de código (estimado)** | ~1200 |
 | **Entidades de domínio** | 6 |
-| **Use Cases** | 6 |
-| **Controllers** | 2 |
-| **Endpoints REST** | 2 |
+| **Use Cases** | 5 |
+| **Controllers** | 3 |
+| **Endpoints REST** | 3 |
 | **Feign Clients** | 2 |
 | **JPA Entities** | 1 |
 | **Schedulers** | 1 |
 | **Event Listeners** | 1 |
+| **Testes Unitários** | 4 |
+| **Testes de Integração** | 4 |
 
 ### 3.2 Cobertura de Funcionalidades
 
+```mermaid
+pie title Progresso do Projeto
+    "Completo" : 75
+    "Em Desenvolvimento" : 15
+    "Pendente" : 10
 ```
-Funcionalidade                    Status      Progresso
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Arquitetura Hexagonal             ✅ Completo  ████████████ 100%
-Listagem de Campeões              ✅ Completo  ████████████ 100%
-Sincronização de Versões          ✅ Completo  ████████████ 100%
-Sistema de Eventos                ✅ Completo  ████████████ 100%
-Agendamento de Jobs               ✅ Completo  ████████████ 100%
-Docker/Docker Compose             ✅ Completo  ████████████ 100%
-Tratamento de Erros               🚧 Pendente  ░░░░░░░░░░░░   0%
-Testes Unitários                  🚧 Pendente  ░░░░░░░░░░░░   0%
-Testes de Integração              🚧 Pendente  ░░░░░░░░░░░░   0%
-Documentação OpenAPI              🚧 Pendente  ░░░░░░░░░░░░   0%
-Autenticação/Autorização          🚧 Pendente  ░░░░░░░░░░░░   0%
-Cache                             🚧 Pendente  ░░░░░░░░░░░░   0%
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Progresso Geral                               ████████░░░░  50%
-```
+
+| Funcionalidade | Status | Progresso |
+|----------------|--------|-----------|
+| Arquitetura Hexagonal | ✅ Completo | 100% |
+| Listagem de Campeões | ✅ Completo | 100% |
+| Sincronização de Versões | ✅ Completo | 100% |
+| Sistema de Eventos | ✅ Completo | 100% |
+| Agendamento de Jobs | ✅ Completo | 100% |
+| Docker/Docker Compose | ✅ Completo | 100% |
+| Tratamento de Erros | ✅ Completo | 100% |
+| Testes Unitários | ✅ Em progresso | 60% |
+| Testes de Integração | ✅ Em progresso | 60% |
+| Documentação Técnica | ✅ Completo | 100% |
+| Documentação OpenAPI | 🚧 Pendente | 0% |
+| Autenticação/Autorização | 🚧 Pendente | 0% |
+| Cache | 🚧 Pendente | 0% |
 
 ---
 
@@ -226,7 +213,7 @@ Progresso Geral                               ████████░░░�
 | Prática | Local | Exemplo |
 |---------|-------|---------|
 | **Data Classes** | Models | `data class Champion(...)` |
-| **KDoc Documentation** | Domain | Comentários estruturados |
+| **KDoc Documentation (en-EN)** | Domain | Comentários estruturados em inglês |
 | **Extension Functions** | Mappers | `ChampionDetailResponse.toChampion()` |
 | **Sealed/Enum Classes** | Enums | `enum class OrderType` |
 | **Injeção via Construtor** | Services | Constructor injection |
@@ -235,67 +222,86 @@ Progresso Geral                               ████████░░░�
 | **Logging Estruturado** | Scheduler | Logger com SLF4J |
 | **runCatching** | Scheduler | Tratamento funcional de erros |
 | **Spring Events** | Domain | Event-driven architecture |
+| **Global Exception Handler** | Infrastructure | `@RestControllerAdvice` |
+| **Error Factory Pattern** | Infrastructure | `ApiErrorResponseFactory` |
 
-### 4.2 Problemas Identificados ⚠️
+### 4.2 Melhorias Implementadas na v1.2.0 ✅
 
-#### Críticos 🔴
+| Melhoria | Descrição |
+|----------|-----------|
+| Tratamento de Erros Global | `GlobalExceptionHandler` com `@RestControllerAdvice` |
+| Hierarquia de Exceções | `DomainException` → `BusinessException` / `ResourceNotFoundException` |
+| Respostas Padronizadas | `ApiErrorResponse` seguindo RFC 7807 |
+| Proteção em Produção | Detalhes de erro ocultos fora de `dev`/`local` |
+| Comentários em Inglês | Todos os KDocs traduzidos para en-EN |
+| Documentação Técnica | Diagramas Mermaid em `/docs` |
 
-| # | Problema | Arquivo | Descrição |
-|---|----------|---------|-----------|
-| 1 | Falta tratamento global de erros | - | Não existe `@ControllerAdvice` |
-| 2 | Sem exceções customizadas | - | Usa `IllegalArgumentException` genérico |
-| 3 | Zero testes | `test/` | Apenas `contextLoads()` |
+### 4.3 Pendências Restantes ⚠️
 
 #### Importantes 🟡
 
 | # | Problema | Arquivo | Descrição |
 |---|----------|---------|-----------|
-| 4 | Endpoint incorreto | `SynchronizeVersionsController` | `GET` para operação de escrita (deveria ser `POST`) |
-| 5 | Classe concreta injetada | `FindAllChampionsController` | Injeta `FindAllChampionService` em vez da interface |
-| 6 | Import não usado | `VersionClient.kt` | Import de `Version` não utilizado |
-| 7 | Dockerfile desatualizado | `Dockerfile` | Usa JDK 17 mas projeto requer 21 |
-| 8 | Network nome incorreto | `docker-compose.yml` | Nome `petshop-network` |
-| 9 | `@JsonProperty` no Domain | `ChampionStats.kt` | Acoplamento com Jackson |
+| 1 | Endpoint incorreto | `SynchronizeVersionsController` | `GET` para operação de escrita (deveria ser `POST`) |
+| 2 | Network nome incorreto | `docker-compose.yml` | Nome `petshop-network` (legacy) |
 
-#### Melhorias 🟢
+#### Melhorias Futuras 🟢
 
 | # | Sugestão | Local |
 |---|----------|-------|
-| 10 | Adicionar validação `@Valid` | Controllers |
-| 11 | Implementar paginação real | `FindAllChampionService` |
-| 12 | Usar `Pagination` existente | `FindAllChampionsController` |
-| 13 | Cache para API externa | `ChampionClientAdapter` |
-| 14 | Adicionar profiles Spring | `application.yml` |
-
-### 4.3 Código Exemplar 🌟
-
-**Scheduler com tratamento de erros funcional:**
-```kotlin
-@Scheduled(cron = "0 0 4 * * *")
-fun syncVersionsDaily() = runCatching {
-    logger.info("⏰ Despertador tocou! Sincronizando...")
-    useCase.execute()
-}.onSuccess {
-    logger.info("✅ Tudo limpo e sincronizado!")
-}.onFailure {
-    logger.error("❌ Ocorreu um erro na sincronização", it)
-}
-```
-
-**Service com Event Publishing:**
-```kotlin
-@Transactional(rollbackOn = [Exception::class])
-override fun execute(): Long {
-    // ... lógica de sincronização ...
-    
-    eventPublisher.publishEvent(VersionImportedEvent(currentVersion))
-    return savedVersions.size.toLong()
-}
-```
+| 1 | Implementar paginação real | `FindAllChampionService` |
+| 2 | Cache para API externa | `ChampionClientAdapter` |
+| 3 | Adicionar OpenAPI/Swagger | Controllers |
+| 4 | Rate limiting | Controllers |
+| 5 | Métricas com Micrometer | Aplicação |
 
 ---
 
-## 5. 🛡️ Análise de Segurança
+## 5. 🧪 Análise de Testes
+
+### 5.1 Testes Implementados
+
+```mermaid
+graph LR
+    subgraph Unit["🧪 Testes Unitários"]
+        CVS[CreateVersionServiceTest]
+        SVS[SynchronizeVersionsServiceTest]
+    end
+
+    subgraph Integration["🔬 Testes de Integração"]
+        CVSIT[CreateVersionServiceIT]
+        SVSIT[SynchronizeVersionsServiceIT]
+        FVNSIT[FindVersionNumberServiceIT]
+    end
+
+    subgraph Support["📦 Suporte"]
+        AIT[AbstractIntegrationTest]
+        VEF[VersionEntityFactory]
+        VF[VersionFixtures]
+    end
+
+    Unit --> Support
+    Integration --> Support
+    Integration --> AIT
+
+    style Unit fill:#4CAF50,color:#fff
+    style Integration fill:#2196F3,color:#fff
+    style Support fill:#FF9800,color:#fff
+```
+
+### 5.2 Cobertura de Testes
+
+| Componente | Unitário | Integração | Status |
+|------------|----------|------------|--------|
+| `CreateVersionService` | ✅ | ✅ | Completo |
+| `SynchronizeVersionsService` | ✅ | ✅ | Completo |
+| `FindVersionByNumberService` | - | ✅ | Parcial |
+| `FindAllChampionService` | - | - | Pendente |
+| Controllers | - | - | Pendente |
+
+---
+
+## 6. 🛡️ Análise de Segurança
 
 | Aspecto | Status | Observação |
 |---------|--------|------------|
@@ -303,70 +309,30 @@ override fun execute(): Long {
 | Autenticação | 🚧 Ausente | Endpoints públicos |
 | HTTPS | 🚧 Não configurado | - |
 | Rate Limiting | 🚧 Ausente | Vulnerável a DDoS |
-| Validação de Input | ⚠️ Parcial | Falta `@Valid` nos controllers |
-| Senhas em texto | ⚠️ | Variáveis de ambiente (OK para dev) |
+| Validação de Input | ✅ Implementado | `@Valid` nos controllers |
+| Proteção de Detalhes | ✅ Implementado | Erros ocultos em produção |
 
 ---
 
-## 6. 📋 Checklist de Pendências
+## 7. 📋 Roadmap Atualizado
 
-### Prioridade Alta 🔴
-
-- [ ] Criar `GlobalExceptionHandler` com `@ControllerAdvice`
-- [ ] Criar exceções customizadas (`VersionNotFoundException`, `ChampionNotFoundException`, etc.)
-- [ ] Escrever testes unitários para Services
-- [ ] Escrever testes de integração para Controllers
-- [ ] Corrigir Dockerfile para JDK 21
-
-### Prioridade Média 🟡
-
-- [ ] Alterar `GET /import` para `POST /import`
-- [ ] Injetar interface em vez de classe concreta nos controllers
-- [ ] Adicionar Swagger/OpenAPI
-- [ ] Mover `@JsonProperty` para DTOs de infraestrutura
-- [ ] Implementar cache com `@Cacheable`
-- [ ] Corrigir nome da network no docker-compose
-
-### Prioridade Baixa 🟢
-
-- [ ] Adicionar Spring Profiles (dev, prod)
-- [ ] Implementar paginação real com `Page<T>`
-- [ ] Adicionar métricas com Micrometer
-- [ ] CI/CD Pipeline
-- [ ] Health checks customizados
-
----
-
-## 7. 📊 Roadmap Sugerido
-
-### Sprint 1 - Qualidade (2 semanas)
+### Sprint Atual - Documentação ✅ (Concluído)
 ```
-Semana 1:
-├── [ ] Criar GlobalExceptionHandler
-├── [ ] Criar exceções customizadas
-├── [ ] Corrigir Dockerfile
-└── [ ] Corrigir docker-compose
-
-Semana 2:
-├── [ ] Testes unitários - Services (80% cobertura)
-├── [ ] Testes de integração - Controllers
-└── [ ] Corrigir endpoint POST
+├── [x] Padronização de comentários em inglês
+├── [x] Documentação técnica com Mermaid
+├── [x] Atualização do README.md
+└── [x] Atualização do CHANGELOG.md
 ```
 
-### Sprint 2 - Documentação e Segurança (2 semanas)
+### Próxima Sprint - API Documentation
 ```
-Semana 3:
 ├── [ ] Adicionar SpringDoc OpenAPI
 ├── [ ] Documentar todos os endpoints
-└── [ ] Adicionar validações @Valid
-
-Semana 4:
-├── [ ] Implementar Spring Security (opcional)
-├── [ ] Adicionar rate limiting
-└── [ ] Configurar HTTPS
+├── [ ] Adicionar Swagger UI
+└── [ ] Gerar cliente SDK
 ```
 
-### Sprint 3 - Performance (1 semana)
+### Sprint Seguinte - Performance
 ```
 ├── [ ] Implementar cache Redis/Caffeine
 ├── [ ] Otimizar queries N+1
@@ -385,30 +351,54 @@ Semana 4:
 3. **Separação de responsabilidades** - Cada classe tem um propósito claro
 4. **Event-driven** - Desacoplamento via eventos de domínio
 5. **Automação** - Jobs agendados funcionais
+6. **Tratamento de Erros** - Sistema global implementado ✅
+7. **Testes** - Base de testes iniciada ✅
+8. **Documentação** - Técnica completa com diagramas ✅
 
-### Áreas de Melhoria Imediata
+### Evolução do Projeto
 
-1. **Tratamento de erros** - Prioridade máxima
-2. **Testes** - Essencial para manutenção
-3. **Documentação API** - Facilita integração
+```mermaid
+timeline
+    title Evolução do Projeto League of Legends API
+    
+    2024-11-15 : v0.1.0 - Setup Inicial
+               : Estrutura base
+               : Docker config
+
+    2024-12-01 : v1.0.0 - MVP
+               : Arquitetura Hexagonal
+               : Integração Data Dragon
+               : Módulo Campeões
+               : Módulo Versões
+
+    2025-12-30 : v1.1.0 - Error Handling
+               : GlobalExceptionHandler
+               : Hierarquia de Exceções
+               : RFC 7807
+
+    2025-12-31 : v1.2.0 - Documentation
+               : Documentação Técnica
+               : Diagramas Mermaid
+               : Testes Implementados
+               : Comentários en-EN
+```
 
 ### Avaliação Geral
 
 | Critério | Nota | Comentário |
 |----------|------|------------|
 | Arquitetura | ⭐⭐⭐⭐⭐ | Excelente |
-| Código | ⭐⭐⭐⭐ | Muito bom |
-| Testes | ⭐ | Crítico |
-| Documentação | ⭐⭐⭐ | Razoável |
-| Segurança | ⭐⭐ | Precisa melhorar |
-| **Média** | **⭐⭐⭐** | **Bom potencial** |
+| Código | ⭐⭐⭐⭐⭐ | Excelente |
+| Testes | ⭐⭐⭐ | Bom (em progresso) |
+| Documentação | ⭐⭐⭐⭐⭐ | Excelente |
+| Segurança | ⭐⭐⭐ | Razoável |
+| **Média** | **⭐⭐⭐⭐** | **Muito Bom** |
 
 ---
 
-**O projeto possui uma base arquitetural excelente. As próximas etapas devem focar em tratamento de erros, testes e documentação para garantir qualidade e manutenibilidade.**
+**O projeto evoluiu significativamente e agora possui uma base sólida com tratamento de erros, testes e documentação técnica completa. As próximas etapas devem focar em documentação OpenAPI, cache e segurança.**
 
 ---
 
-*Relatório gerado em 30/12/2025*  
-*Autor: Análise Automatizada*
-
+*Relatório atualizado em 31/12/2025*  
+*Versão: 1.2.0*

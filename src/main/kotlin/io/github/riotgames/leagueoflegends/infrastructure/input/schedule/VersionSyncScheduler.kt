@@ -23,22 +23,22 @@ class VersionSyncScheduler(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     /**
-     * Executa a sincronização diária das versões.
+     * Executes daily version synchronization.
      *
-     * **Cronograma:** Todos os dias às 04:00 AM (Horário do Servidor).
+     * **Schedule:** Every day at 04:00 AM (Server Time).
      *
-     * O método utiliza [runCatching] para garantir que exceções não interrompam
-     * a thread do agendador do Spring, registrando falhas no log de erro.
+     * This method uses [runCatching] to ensure exceptions do not interrupt
+     * the Spring scheduler thread, logging failures to the error log.
      *
      * @see SynchronizeVersionsUseCase.execute
      */
     @Scheduled(cron = "0 0 4 * * *")
     fun syncVersionsDaily() = runCatching {
-        logger.info("⏰ Despertador tocou! Sincronizando...")
+        logger.info("⏰ Alarm triggered! Starting synchronization...")
         useCase.execute()
     }.onSuccess {
-        logger.info("✅ Tudo limpo e sincronizado!")
+        logger.info("✅ Synchronization completed successfully!")
     }.onFailure {
-        logger.error("❌ Ocorreu um erro na sincronização", it)
+        logger.error("❌ An error occurred during synchronization", it)
     }
 }

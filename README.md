@@ -2,7 +2,7 @@
 
 API REST para consulta de dados de campeões e versões do **League of Legends**, utilizando a **Data Dragon API** da Riot Games.
 
-![Versão](https://img.shields.io/badge/Versão-1.1.0-blue)
+![Versão](https://img.shields.io/badge/Versão-1.2.0-blue)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-purple?logo=kotlin)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.1-green?logo=springboot)
 ![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)
@@ -20,9 +20,11 @@ API REST para consulta de dados de campeões e versões do **League of Legends**
 - [Requisitos](#-requisitos)
 - [Instalação](#-instalação)
 - [Endpoints](#-endpoints)
+- [Tratamento de Erros](#-tratamento-de-erros)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Status do Desenvolvimento](#-status-do-desenvolvimento)
 - [Changelog](#-changelog)
+- [Documentação Técnica](#-documentação-técnica)
 
 ---
 
@@ -31,7 +33,7 @@ API REST para consulta de dados de campeões e versões do **League of Legends**
 Esta API consome dados da [Data Dragon API](https://developer.riotgames.com/docs/lol#data-dragon) da Riot Games para fornecer informações sobre:
 
 - **Campeões**: Listagem com stats, imagens, tags e informações detalhadas
-- **Versões**: Sincronização automática das versões do jogo
+- **Versões**: Sincronização automática das versões do jogo e gerenciamento manual
 
 O projeto utiliza arquitetura **Hexagonal (Ports and Adapters)** para garantir separação de responsabilidades e facilitar a manutenção e testes.
 
@@ -64,7 +66,7 @@ O projeto segue a **Arquitetura Hexagonal** (Clean Architecture):
 │  │  • Models (Entities)                                     │   │
 │  │  • Ports (Interfaces)                                    │   │
 │  │  • Enums                                                 │   │
-│  │  • Mappers                                               │   │
+│  │  • Exceptions                                            │   │
 │  └──────────────────────────────────────────────────────────┘   │
 │                              │                                  │
 │                              ▼                                  │
@@ -93,6 +95,7 @@ O projeto segue a **Arquitetura Hexagonal** (Clean Architecture):
 | **Resiliência** | Resilience4j (Circuit Breaker) | - |
 | **Serialização** | Jackson | - |
 | **Containerização** | Docker / Docker Compose | - |
+| **Testes** | JUnit 5 / Testcontainers / Mockito | - |
 
 ---
 
@@ -103,17 +106,19 @@ O projeto segue a **Arquitetura Hexagonal** (Clean Architecture):
 - [x] Suporte a múltiplos idiomas (locale)
 - [x] Sincronização automática de versões (diária às 04:00)
 - [x] Sincronização manual de versões via endpoint
+- [x] Criação manual de versões via API REST
 - [x] Sistema de eventos para atualização de versão corrente
 - [x] Integração com Data Dragon API
-- [x] **Tratamento global de erros** com respostas padronizadas
+- [x] **Tratamento global de erros** com respostas padronizadas (RFC 7807)
 - [x] **Hierarquia de exceções** de domínio e aplicação
 - [x] **Proteção de detalhes sensíveis** em produção
+- [x] **Testes unitários e de integração** com Testcontainers
 
 ### Em Desenvolvimento 🚧
-- [ ] Testes unitários e de integração
 - [ ] Documentação OpenAPI/Swagger
 - [ ] Cache de requisições
 - [ ] Autenticação e autorização
+- [ ] Métricas e observabilidade avançada
 
 ---
 
@@ -185,7 +190,60 @@ curl "http://localhost:8080/api/v1/champions?pageSize=10&order=DESC&language=pt_
 
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| `GET` | `/api/v1/admin/versions/import` | Sincroniza versões manualmente |
+| `GET` | `/api/v1/admin/versions/import` | Sincroniza versões da API externa |
+| `POST` | `/api/v1/versions` | Cria uma nova versão manualmente |
+
+**Exemplo - Criar versão:**
+```bash
+curl -X POST "http://localhost:8080/api/v1/versions" \
+  -H "Content-Type: application/json" \
+  -d '{"number": "14.1.1"}'
+```
+
+---
+
+## 🛡️ Tratamento de Erros
+
+A API implementa um sistema global de tratamento de erros seguindo o padrão **RFC 7807 (Problem Details)**.
+
+### Hierarquia de Exceções
+
+```
+RuntimeException
+└── DomainException (abstract)
+    ├── BusinessException (HTTP 422)
+    │   └── VersionIsAlreadyRegisteredException
+    └── ResourceNotFoundException (HTTP 404)
+        ├── VersionNotFoundRegisteredException
+        └── VersionNotFoundToSynchronizeException
+```
+
+### Formato de Resposta de Erro
+
+```json
+{
+  "timestamp": "2025-12-31T10:30:00Z",
+  "status": 422,
+  "error": "Unprocessable Entity",
+  "code": "BUSINESS_ERROR",
+  "message": "Version 14.1.1 is already registered.",
+  "path": "/api/v1/versions",
+  "details": ["VersionIsAlreadyRegisteredException: ..."]
+}
+```
+
+> **Nota:** O campo `details` só é exibido em ambientes `dev` ou `local` para proteger informações sensíveis em produção.
+
+### Códigos de Erro
+
+| Código | HTTP Status | Descrição |
+|--------|-------------|-----------|
+| `VALIDATION_ERROR` | 400 | Erro de validação nos campos |
+| `BAD_REQUEST` | 400 | Requisição mal formatada |
+| `RESOURCE_NOT_FOUND` | 404 | Recurso não encontrado |
+| `BUSINESS_ERROR` | 422 | Violação de regra de negócio |
+| `DEPENDENCY_ERROR` | 503 | Serviço externo indisponível |
+| `UNEXPECTED_ERROR` | 500 | Erro interno não esperado |
 
 ---
 
@@ -237,8 +295,11 @@ src/main/kotlin/io/github/riotgames/leagueoflegends/
     │   │   │   ├── ApiErrorResponse.kt
     │   │   │   ├── ErrorCode.kt
     │   │   │   └── HttpExceptionMetadata.kt
-    │   │   └── factory/                 # Factories
-    │   │       └── ApiErrorResponseFactory.kt
+    │   │   ├── factory/                 # Factories
+    │   │   │   └── ApiErrorResponseFactory.kt
+    │   │   ├── mapper/                  # Mappers de requisição
+    │   │   ├── request/                 # DTOs de entrada
+    │   │   └── response/                # DTOs de saída
     │   ├── listener/                    # Event Listeners
     │   └── schedule/                    # Jobs Agendados
     ├── output/                          # Adaptadores de saída (API externa)
@@ -260,11 +321,12 @@ src/main/kotlin/io/github/riotgames/leagueoflegends/
 | Arquitetura Hexagonal | ✅ Completo | Bem estruturado |
 | CRUD Champions | ✅ Completo | Via API externa |
 | Sincronização Versões | ✅ Completo | Automática + Manual |
+| Criação de Versões | ✅ Completo | POST /api/v1/versions |
 | PostgreSQL | ✅ Configurado | Docker Compose |
 | Event-Driven | ✅ Completo | Spring Events |
 | Tratamento de Erros | ✅ Completo | GlobalExceptionHandler |
-| Testes | 🚧 Pendente | Apenas context test |
-| Documentação API | 🚧 Pendente | - |
+| Testes | ✅ Em progresso | Unitários + Integração |
+| Documentação API | 🚧 Pendente | OpenAPI/Swagger |
 | CI/CD | 🚧 Pendente | - |
 
 ---
@@ -273,13 +335,25 @@ src/main/kotlin/io/github/riotgames/leagueoflegends/
 
 Para ver o histórico completo de alterações, consulte o arquivo [CHANGELOG.md](CHANGELOG.md).
 
-### Versão Atual: 1.1.0
+### Versão Atual: 1.2.0
 
 **Novidades desta versão:**
-- ✅ Sistema global de tratamento de erros (`GlobalExceptionHandler`)
-- ✅ Respostas de erro padronizadas (`ApiErrorResponse`)
-- ✅ Hierarquia de exceções de domínio e aplicação
-- ✅ Proteção de detalhes sensíveis em produção
+- ✅ Padronização de comentários e documentação em inglês (en-EN)
+- ✅ Documentação técnica completa com diagramas Mermaid
+- ✅ Testes unitários e de integração implementados
+- ✅ Melhorias gerais na documentação do projeto
+
+---
+
+## 📚 Documentação Técnica
+
+Documentação técnica detalhada está disponível na pasta `/docs`:
+
+| Documento | Descrição |
+|-----------|-----------|
+| [ARQUITETURA.md](docs/ARQUITETURA.md) | Diagramas de arquitetura com Mermaid |
+| [API_REFERENCE.md](docs/API_REFERENCE.md) | Referência completa da API |
+| [RELATORIO_ANALISE_TECNICA.md](docs/RELATORIO_ANALISE_TECNICA.md) | Análise técnica do projeto |
 
 ---
 
@@ -304,10 +378,10 @@ Este projeto está sob a licença MIT.
 - [Data Dragon API - Riot Games](https://developer.riotgames.com/docs/lol#data-dragon)
 - [Spring Boot Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/)
 - [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)
+- [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/)
 
 ---
 
 <p align="center">
   Desenvolvido com ❤️ usando Kotlin e Spring Boot
 </p>
-

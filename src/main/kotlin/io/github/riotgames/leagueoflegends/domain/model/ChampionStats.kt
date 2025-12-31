@@ -14,9 +14,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * @param spellBlock The base magic resist of the champion.
  * @param spellBlockPerLevel The magic resist gained per level.
  * @param attackRange The attack range of the champion.
- * @param hpRegen The base health regeneration of the champion.
+ * @param hpregen The base health regeneration of the champion.
  * @param hpRegenPerLevel The health regeneration gained per level.
- * @param mpRegen The base mana regeneration of the champion.
+ * @param mpregen The base mana regeneration of the champion.
  * @param mpRegenPerLevel The mana regeneration gained per level.
  * @param crit The base critical strike chance of the champion.
  * @param critPerLevel The critical strike chance gained per level.
@@ -28,7 +28,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class ChampionStats(
     val hp: Double,
 
-    @JsonProperty("hpperlevel") // O JSON vem tudo minúsculo, mas aqui usamos camelCase
+    @JsonProperty("hpperlevel")
     val hpPerLevel: Double,
 
     val mp: Double,

@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PathVariable
 @FeignClient(name = "champion-client", url = "\${ddragon.api.url}")
 interface ChampionClient {
     /**
-     * Busca os campeões do League of Legends com base na versão e idioma fornecidos.
-     * @param version A versão dos dados dos campeões.
-     * @param language O idioma dos dados dos campeões.
-     * @return Um objeto contendo os dados dos campeões.
+     * Fetches League of Legends champions based on the provided version and language.
+     * @param version The version of the champion data.
+     * @param language The language of the champion data.
+     * @return An object containing the champion data.
      */
     @GetMapping("/cdn/{version}/data/{language}/champion.json")
     fun findAllChampions(

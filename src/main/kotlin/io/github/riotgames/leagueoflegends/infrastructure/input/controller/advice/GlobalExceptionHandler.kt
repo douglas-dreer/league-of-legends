@@ -93,7 +93,7 @@ class GlobalExceptionHandler(
         return apiErrorFactory.build(
             status = HttpStatus.INTERNAL_SERVER_ERROR,
             code = ErrorCode.UNEXPECTED_ERROR,
-            message = "Erro interno. Contate o admin.",
+            message = "Internal server error. Please contact the administrator.",
             path = request.requestURI,
             details = listOf(ex.toString())
         )
