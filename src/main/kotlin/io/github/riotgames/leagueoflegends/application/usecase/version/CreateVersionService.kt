@@ -14,7 +14,7 @@ class CreateVersionService(
 ): CreateVersionUseCase {
 
     override fun execute(version: Version): Version {
-        if (validator.isAlreadyRegistered(version.number)) {
+        if (validator.filterAlreadyRegistered(version.number)) {
             throw VersionIsAlreadyRegisteredException(version.number)
         }
         return repository.save(version)
