@@ -265,7 +265,18 @@ pie title Progresso do Projeto
 | **Global Exception Handler** | Infrastructure | `@RestControllerAdvice` |
 | **Error Factory Pattern** | Infrastructure | `ApiErrorResponseFactory` |
 
-### 4.2 Melhorias Implementadas na v1.2.0 ✅
+### 4.2 Melhorias Implementadas na v1.3.0 ✅
+
+| Melhoria | Descrição |
+|----------|-----------|
+| Endpoint Corrigido | `SynchronizeVersionsController` agora usa `POST` |
+| Network Corrigida | `docker-compose.yml` usa `lol-network` |
+| Dockerfile Atualizado | JRE 21 em vez de JRE 17 |
+| Novos Testes | Testes para adapters adicionados |
+| SonarQube | Plugin configurado para análise de código |
+| Automação de Docs | Task `updateDocsCoverage` para atualizar métricas |
+
+### 4.3 Melhorias Implementadas na v1.2.0 ✅
 
 | Melhoria | Descrição |
 |----------|-----------|
@@ -276,15 +287,6 @@ pie title Progresso do Projeto
 | Comentários em Inglês | Todos os KDocs traduzidos para en-EN |
 | Documentação Técnica | Diagramas Mermaid em `/docs` |
 
-### 4.3 Melhorias Implementadas na v1.3.0 ✅
-
-| Melhoria | Descrição |
-|----------|-----------|
-| Endpoint Corrigido | `SynchronizeVersionsController` agora usa `POST` |
-| Network Corrigida | `docker-compose.yml` usa `lol-network` |
-| Dockerfile Atualizado | JRE 21 em vez de JRE 17 |
-| Novos Testes | Testes para adapters adicionados |
-| SonarQube | Plugin configurado para análise de código |
 
 ### 4.4 Melhorias Futuras 🟢
 
