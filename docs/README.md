@@ -37,6 +37,8 @@ O **League of Legends API** é uma API REST que consome dados da [Data Dragon AP
 - ⏰ **Sincronização automática** de versões (diária)
 - 🛡️ **Tratamento global de erros** (RFC 7807)
 - 🧪 **Testes automatizados** (unitários + integração)
+- 📊 **SonarQube** para análise de código
+- 📈 **JaCoCo** para cobertura de testes
 
 ---
 

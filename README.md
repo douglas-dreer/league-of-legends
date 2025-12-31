@@ -9,6 +9,17 @@ API REST para consulta de dados de campeões e versões do **League of Legends**
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue?logo=postgresql)
 ![Licença](https://img.shields.io/badge/Licença-MIT-green)
 
+### 📊 Qualidade de Código
+
+[![Quality Gate Status](https://img.shields.io/badge/Quality%20Gate-Passed-brightgreen?logo=sonarqube)](http://localhost:9000/dashboard?id=league-of-legends)
+[![Coverage](https://img.shields.io/badge/Coverage-27.25%25-orange?logo=codecov)](http://localhost:9000/component_measures?id=league-of-legends&metric=coverage)
+[![Bugs](https://img.shields.io/badge/Bugs-0-brightgreen?logo=sonarqube)](http://localhost:9000/project/issues?id=league-of-legends&resolved=false&types=BUG)
+[![Code Smells](https://img.shields.io/badge/Code%20Smells-0-brightgreen?logo=sonarqube)](http://localhost:9000/project/issues?id=league-of-legends&resolved=false&types=CODE_SMELL)
+[![Vulnerabilities](https://img.shields.io/badge/Vulnerabilities-0-brightgreen?logo=sonarqube)](http://localhost:9000/project/issues?id=league-of-legends&resolved=false&types=VULNERABILITY)
+[![Security Hotspots](https://img.shields.io/badge/Security%20Hotspots-0-brightgreen?logo=sonarqube)](http://localhost:9000/security_hotspots?id=league-of-legends)
+[![Duplicated Lines](https://img.shields.io/badge/Duplications-0%25-brightgreen?logo=sonarqube)](http://localhost:9000/component_measures?id=league-of-legends&metric=duplicated_lines_density)
+[![Technical Debt](https://img.shields.io/badge/Technical%20Debt-0min-brightgreen?logo=sonarqube)](http://localhost:9000/component_measures?id=league-of-legends&metric=sqale_index)
+
 ---
 
 ## 📋 Índice
@@ -23,6 +34,8 @@ API REST para consulta de dados de campeões e versões do **League of Legends**
 - [Tratamento de Erros](#-tratamento-de-erros)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
 - [Status do Desenvolvimento](#-status-do-desenvolvimento)
+- [Testes](#-testes)
+- [Qualidade de Código](#-qualidade-de-código)
 - [Changelog](#-changelog)
 - [Documentação Técnica](#-documentação-técnica)
 
@@ -87,7 +100,7 @@ O projeto segue a **Arquitetura Hexagonal** (Clean Architecture):
 | **Linguagem** | Kotlin | 2.2.21 |
 | **Runtime** | Java | 21 |
 | **Framework** | Spring Boot | 4.0.1 |
-| **Build Tool** | Gradle (Kotlin DSL) | 8.x |
+| **Build Tool** | Gradle (Kotlin DSL) | 8.5 |
 | **Banco de Dados** | PostgreSQL | 16 |
 | **ORM** | Spring Data JPA / Hibernate | - |
 | **HTTP Client** | Spring Cloud OpenFeign | 2025.1.0 |
@@ -95,7 +108,9 @@ O projeto segue a **Arquitetura Hexagonal** (Clean Architecture):
 | **Resiliência** | Resilience4j (Circuit Breaker) | - |
 | **Serialização** | Jackson | - |
 | **Containerização** | Docker / Docker Compose | - |
-| **Testes** | JUnit 5 / Testcontainers / Mockito | - |
+| **Testes** | JUnit 5 / Testcontainers 1.21.4 / Mockito 5.21.0 | - |
+| **Qualidade de Código** | SonarQube | 7.2.0 |
+| **Cobertura** | JaCoCo | - |
 
 ---
 
@@ -363,6 +378,85 @@ O projeto possui uma suíte completa de testes:
 
 # Apenas testes de integração
 ./gradlew test --tests "*IT"
+```
+
+---
+
+## 📊 Qualidade de Código
+
+O projeto utiliza **SonarQube** para análise estática de código e **JaCoCo** para cobertura de testes.
+
+### Métricas Monitoradas
+
+| Métrica | Valor Atual | Meta |
+|---------|-------------|------|
+| **Quality Gate** | ✅ Passed | Passed |
+| **Line Coverage** | 27.25% | ≥ 80% |
+| **Branch Coverage** | 15.22% | ≥ 80% |
+| **Instruction Coverage** | 21.09% | ≥ 80% |
+| **Bugs** | 0 | 0 |
+| **Code Smells** | 0 | 0 |
+| **Vulnerabilities** | 0 | 0 |
+| **Security Hotspots** | 0 | 0 |
+| **Duplicated Lines** | 0% | ≤ 3% |
+| **Technical Debt** | 0min | 0min |
+
+> ⚠️ **Nota:** A cobertura atual está abaixo da meta de 80%. Testes adicionais são necessários para melhorar a cobertura, especialmente em:
+> - Controllers (`FindAllChampionsController`, `SynchronizeVersionsController`, `CreateVersionController`)
+> - Exception Handlers (`GlobalExceptionHandler`)
+> - Domain Models (`Champion`, `ChampionStats`, `ChampionImage`, `ChampionInfo`)
+
+### SonarQube
+
+| Configuração | Valor |
+|--------------|-------|
+| **Plugin Version** | 7.2.0.6526 |
+| **Project Key** | `league-of-legends` |
+| **Project Name** | `League of Legends API` |
+| **Host URL** | `http://localhost:9000` |
+
+**Executar análise:**
+```bash
+# Gerar relatório de cobertura e enviar para SonarQube
+./gradlew test jacocoTestReport sonar
+
+# Acessar dashboard
+# http://localhost:9000/dashboard?id=league-of-legends
+```
+
+### JaCoCo
+
+| Configuração | Valor |
+|--------------|-------|
+| **Report Format** | XML + HTML |
+| **XML Report Path** | `build/reports/jacoco/test/jacocoTestReport.xml` |
+| **HTML Report Path** | `build/reports/jacoco/test/html/index.html` |
+
+**Gerar relatório de cobertura:**
+```bash
+# Executar testes e gerar relatório JaCoCo
+./gradlew test jacocoTestReport
+
+# Relatório HTML disponível em:
+# build/reports/jacoco/test/html/index.html
+```
+
+### 🔄 Atualização Automática da Documentação
+
+O projeto possui uma task Gradle personalizada que atualiza automaticamente os arquivos de documentação com as métricas de cobertura reais do JaCoCo:
+
+```bash
+# Executar testes + gerar relatório + atualizar documentação
+./gradlew updateDocsCoverage
+
+# Ou usar o script PowerShell completo (Windows)
+.\scripts\update-docs-coverage.ps1
+```
+
+**Arquivos atualizados automaticamente:**
+- `README.md` - Badges e tabela de métricas
+- `CHANGELOG.md` - Métricas de cobertura na versão atual
+- `docs/RELATORIO_ANALISE_TECNICA.md` - Tabela de métricas detalhada
 ```
 
 ---

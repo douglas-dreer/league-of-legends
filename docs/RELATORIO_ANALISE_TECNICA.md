@@ -177,14 +177,52 @@ flowchart TB
 | **Schedulers** | 1 |
 | **Event Listeners** | 1 |
 | **Testes Unitários** | 4 |
-| **Testes de Integração** | 4 |
+| **Testes de Integração** | 5 |
 
-### 3.2 Cobertura de Funcionalidades
+### 3.2 Qualidade de Código (SonarQube)
+
+#### Métricas Atuais
+
+| Métrica | Valor | Status |
+|---------|-------|--------|
+| **Quality Gate** | Passed | ✅ |
+| **Line Coverage** | 27.25% | ⚠️ |
+| **Branch Coverage** | 15.22% | ⚠️ |
+| **Instruction Coverage** | 21.09% | ⚠️ |
+| **Method Coverage** | 22.56% | ⚠️ |
+| **Class Coverage** | 43.4% | ⚠️ |
+| **Bugs** | 0 | ✅ |
+| **Code Smells** | 0 | ✅ |
+| **Vulnerabilities** | 0 | ✅ |
+| **Security Hotspots** | 0 | ✅ |
+| **Duplicated Lines** | 0% | ✅ |
+| **Technical Debt** | 0min | ✅ |
+
+> ⚠️ **Cobertura abaixo da meta de 80%** - Necessário adicionar mais testes
+
+#### Configuração SonarQube
+
+| Configuração | Valor |
+|--------------|-------|
+| **Plugin Version** | 7.2.0.6526 |
+| **Project Key** | `league-of-legends` |
+| **Project Name** | `League of Legends API` |
+| **Host URL** | `http://localhost:9000` |
+
+#### Configuração JaCoCo
+
+| Configuração | Valor |
+|--------------|-------|
+| **Report Format** | XML + HTML |
+| **XML Path** | `build/reports/jacoco/test/jacocoTestReport.xml` |
+| **HTML Path** | `build/reports/jacoco/test/html/index.html` |
+
+### 3.3 Cobertura de Funcionalidades
 
 ```mermaid
 pie title Progresso do Projeto
-    "Completo" : 75
-    "Em Desenvolvimento" : 15
+    "Completo" : 80
+    "Em Desenvolvimento" : 10
     "Pendente" : 10
 ```
 
@@ -197,8 +235,10 @@ pie title Progresso do Projeto
 | Agendamento de Jobs | ✅ Completo | 100% |
 | Docker/Docker Compose | ✅ Completo | 100% |
 | Tratamento de Erros | ✅ Completo | 100% |
-| Testes Unitários | ✅ Em progresso | 60% |
-| Testes de Integração | ✅ Em progresso | 60% |
+| Testes Unitários | ✅ Completo | 100% |
+| Testes de Integração | ✅ Completo | 100% |
+| SonarQube | ✅ Completo | 100% |
+| JaCoCo | ✅ Completo | 100% |
 | Documentação Técnica | ✅ Completo | 100% |
 | Documentação OpenAPI | 🚧 Pendente | 0% |
 | Autenticação/Autorização | 🚧 Pendente | 0% |

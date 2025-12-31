@@ -25,9 +25,28 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
   - 🧪 `VersionRepositoryAdapterIT` - Teste de integração do repositório
   - 🧪 `VersionRepositoryAdapterTest` - Teste unitário do repositório adapter
 
-- **Análise de Código**
-  - 📊 SonarQube configurado para análise estática de código
-  - Plugin `org.sonarqube` versão 5.0.0.4638 adicionado
+- **Qualidade de Código**
+  - 📊 **SonarQube** configurado para análise estática de código
+    - Plugin `org.sonarqube` versão 7.2.0.6526
+    - Project Key: `league-of-legends`
+  - 📈 **JaCoCo** configurado para cobertura de testes
+    - Relatório XML para integração com SonarQube
+    - Relatório HTML para visualização local
+  - 🏷️ **Badges de métricas** adicionadas no README:
+    - Quality Gate Status (Passed)
+    - Line Coverage (27.25%)
+    - Branch Coverage (15.22%)
+    - Bugs (0)
+    - Code Smells (0)
+    - Vulnerabilities (0)
+    - Security Hotspots (0)
+    - Duplicated Lines (0%)
+    - Technical Debt (0min)
+
+- **Automação de Documentação**
+  - 🔄 Task Gradle `updateDocsCoverage` para atualizar docs automaticamente
+  - 📜 Script PowerShell `scripts/update-docs-coverage.ps1`
+  - Arquivos atualizados: README.md, CHANGELOG.md, docs/RELATORIO_ANALISE_TECNICA.md
 
 ### 🔧 Alterado
 - **Endpoint de Sincronização**
@@ -36,7 +55,10 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 - **Documentação**
   - 📝 README.md atualizado com seção de Testes
-  - 📝 Tabela de status atualizada
+  - 📝 README.md atualizado com seção de Qualidade de Código
+  - 📝 Badges de SonarQube e métricas adicionadas
+  - 📝 Tabela de tecnologias atualizada
+  - 📝 Seção de Atualização Automática da Documentação adicionada
 
 ### 🐛 Corrigido
 - **Dockerfile**: Atualizado para usar JRE 21 (estava com JRE 17)
