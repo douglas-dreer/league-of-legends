@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for D&D 5E Core API
+# Multi-stage Dockerfile for League of Legends API
 # Stage 1: Build stage using Gradle
 FROM gradle:8.5-jdk21 AS build
 
@@ -19,8 +19,8 @@ COPY src src
 # Build the application
 RUN gradle bootJar --no-daemon
 
-# Stage 2: Runtime stage using JRE
-FROM eclipse-temurin:17-jre-alpine
+# Stage 2: Runtime stage using JRE 21
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
