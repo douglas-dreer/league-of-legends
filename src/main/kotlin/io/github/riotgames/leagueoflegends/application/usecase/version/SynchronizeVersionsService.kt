@@ -16,8 +16,6 @@ class SynchronizeVersionsService(
     private val validator: VersionValidator,
     private val client: VersionClientPort,
     private val createVersionUseCase: CreateVersionUseCase,
-    private val eventPublisher: ApplicationEventPublisher
-
 ) : SynchronizeVersionsUseCase {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -38,14 +36,10 @@ class SynchronizeVersionsService(
         val savedVersions = versionList.map { versionString ->
             logger.debug("Synchronizing version: {}", versionString)
 
-            createVersionUseCase.execute(Version(number = versionString, isCurrent = false))
+            createVersionUseCase.execute(Version(number = versionString))
                 .also { logger.info("Version {} synchronized successfully", it.number ) }
         }
 
-        val currentVersion = savedVersions.last().copy(isCurrent = true)
-
-        eventPublisher.publishEvent(VersionImportedEvent(currentVersion))
-        logger.info("Set version {} as current.", currentVersion.number)
         return savedVersions.size.toLong()
     }
 }
