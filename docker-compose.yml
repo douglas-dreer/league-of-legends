@@ -20,6 +20,49 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+  sonar:
+    image: sonarqube:community
+    container_name: sonarqube
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://postgres-sonar:5432/${SONARQUBE_DATABASE_NAME:-sonar-db}
+      SONAR_JDBC_USERNAME: ${SONARQUBE_DATABASE_USERNAME:-sonar}
+      SONAR_JDBC_PASSWORD: ${SONARQUBE_DATABASE_PASSWORD:-sonar}
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    ports:
+      - "${SONARQUBE_PORT:-9000}:9000"
+    networks:
+        - lol-network
+    depends_on:
+      postgres-sonar:
+        condition: service_healthy
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    restart: unless-stopped
+
+  # --- SonarQube Database ---
+  postgres-sonar:
+    image: postgres:16
+    container_name: postgres-sonar
+    environment:
+      POSTGRES_USER: ${SONARQUBE_DATABASE_USERNAME:-sonar}
+      POSTGRES_PASSWORD: ${SONARQUBE_DATABASE_PASSWORD:-sonar}
+      POSTGRES_DB: ${SONARQUBE_DATABASE_NAME:-sonar}
+    volumes:
+      - sonar_db_data:/var/lib/postgresql/data
+    networks:
+      - lol-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U sonar" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 # Networks
 networks:
@@ -29,4 +72,12 @@ networks:
 # Volumes
 volumes:
   postgres-data:
+    driver: local
+  sonar_db_data:
+    driver: local
+  sonarqube_data:
+    driver: local
+  sonarqube_extensions:
+    driver: local
+  sonarqube_logs:
     driver: local
