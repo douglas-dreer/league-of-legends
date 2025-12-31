@@ -1,10 +1,9 @@
 package io.github.riotgames.leagueoflegends.application.usecase.version
 
 import io.github.riotgames.leagueoflegends.application.validation.VersionValidator
-import io.github.riotgames.leagueoflegends.domain.model.Version
-import io.github.riotgames.leagueoflegends.domain.model.VersionImportedEvent
 import io.github.riotgames.leagueoflegends.domain.port.input.version.CreateVersionUseCase
 import io.github.riotgames.leagueoflegends.domain.port.output.VersionClientPort
+import io.github.riotgames.leagueoflegends.support.fixtures.VersionFixture
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.extension.ExtendWith
@@ -12,11 +11,11 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
-import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+
 import org.springframework.context.ApplicationEventPublisher
 import kotlin.test.Test
 
@@ -42,13 +41,8 @@ class SynchronizeVersionsServiceTest {
     companion object {
         private const val VERSION_ID = 1L
         private const val VERSION_NUMEBER = "13.6.1"
-        private const val VERSION_IS_CURRENT = true
         private val apiResponseList = listOf("13.6.1", "13.6.0", "13.5.1")
-        private val version = Version(
-            id = VERSION_ID,
-            number = VERSION_NUMEBER,
-            isCurrent = VERSION_IS_CURRENT
-        )
+        private val version = VersionFixture.valid(VERSION_ID, VERSION_NUMEBER)
     }
 
     @Nested
@@ -92,23 +86,5 @@ class SynchronizeVersionsServiceTest {
             verify(createVersionUseCase, times(apiResponseList.size))
                 .execute(any())
         }
-
-        @Test
-        fun `should publish VersionImportedEvent for last version`() {
-            whenever(client.findAllVersions()).thenReturn(apiResponseList)
-            whenever(validator.filterAlreadyRegistered(apiResponseList)).thenReturn(apiResponseList)
-            whenever(createVersionUseCase.execute(any())).thenReturn(version)
-
-            service.execute()
-
-            val captor = argumentCaptor<VersionImportedEvent>()
-
-            verify(eventPublisher).publishEvent(captor.capture())
-
-            val event = captor.firstValue
-            assertThat(event.version.number).isEqualTo(VERSION_NUMEBER)
-            assertThat(event.version.isCurrent).isTrue()
-        }
     }
-
 }

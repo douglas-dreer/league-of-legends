@@ -4,6 +4,7 @@ import io.github.riotgames.leagueoflegends.application.exception.VersionIsAlread
 import io.github.riotgames.leagueoflegends.application.validation.VersionValidator
 import io.github.riotgames.leagueoflegends.domain.model.Version
 import io.github.riotgames.leagueoflegends.domain.port.output.VersionRepositoryPort
+import io.github.riotgames.leagueoflegends.support.fixtures.VersionFixture
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
@@ -31,8 +32,9 @@ class CreateVersionServiceTest {
     private lateinit var validator: VersionValidator
 
     companion object {
-        private val version = Version(id = 1L, number = "1.0.0", isCurrent = true)
-        private const val MESSAGE_ERROR = "Version '1.0.0' is already registered."
+        private const val VERSION_NUMBER = "1.0.0"
+        private val version = VersionFixture.valid(number = VERSION_NUMBER)
+        private const val MESSAGE_ERROR = "Version $VERSION_NUMBER is already registered."
     }
 
     @Test
@@ -56,8 +58,9 @@ class CreateVersionServiceTest {
         whenever(validator.filterAlreadyRegistered(any<String>())).thenReturn(true)
 
         val result = assertThrows<VersionIsAlreadyRegisteredException> { service.execute(version) }
-        assertThat(result).isNotNull()
-        assertThat(result.message).isEqualTo(MESSAGE_ERROR)
+        assertThat(result)
+            .isNotNull()
+            .hasMessage(MESSAGE_ERROR)
 
         verify(repository, never()).save(any())
         verify(validator, times(1)).filterAlreadyRegistered(any<String>())
