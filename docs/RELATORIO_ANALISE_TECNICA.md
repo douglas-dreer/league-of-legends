@@ -3,7 +3,7 @@
 **Projeto:** League of Legends API  
 **Data:** 31 de Dezembro de 2025  
 **Status:** 🚧 Em Desenvolvimento  
-**Versão:** 1.2.0
+**Versão:** 1.3.0
 
 ---
 
@@ -138,7 +138,7 @@ flowchart TB
 | Controller | Endpoint | Método HTTP | Avaliação |
 |------------|----------|-------------|-----------|
 | `FindAllChampionsController` | `/api/v1/champions` | GET | ✅ |
-| `SynchronizeVersionsController` | `/api/v1/admin/versions/import` | GET | ⚠️ Deveria ser POST |
+| `SynchronizeVersionsController` | `/api/v1/admin/versions/import` | POST | ✅ |
 | `CreateVersionController` | `/api/v1/versions` | POST | ✅ |
 
 **Exception Handlers:**
@@ -236,16 +236,17 @@ pie title Progresso do Projeto
 | Comentários em Inglês | Todos os KDocs traduzidos para en-EN |
 | Documentação Técnica | Diagramas Mermaid em `/docs` |
 
-### 4.3 Pendências Restantes ⚠️
+### 4.3 Melhorias Implementadas na v1.3.0 ✅
 
-#### Importantes 🟡
+| Melhoria | Descrição |
+|----------|-----------|
+| Endpoint Corrigido | `SynchronizeVersionsController` agora usa `POST` |
+| Network Corrigida | `docker-compose.yml` usa `lol-network` |
+| Dockerfile Atualizado | JRE 21 em vez de JRE 17 |
+| Novos Testes | Testes para adapters adicionados |
+| SonarQube | Plugin configurado para análise de código |
 
-| # | Problema | Arquivo | Descrição |
-|---|----------|---------|-----------|
-| 1 | Endpoint incorreto | `SynchronizeVersionsController` | `GET` para operação de escrita (deveria ser `POST`) |
-| 2 | Network nome incorreto | `docker-compose.yml` | Nome `petshop-network` (legacy) |
-
-#### Melhorias Futuras 🟢
+### 4.4 Melhorias Futuras 🟢
 
 | # | Sugestão | Local |
 |---|----------|-------|
@@ -266,12 +267,15 @@ graph LR
     subgraph Unit["🧪 Testes Unitários"]
         CVS[CreateVersionServiceTest]
         SVS[SynchronizeVersionsServiceTest]
+        VRA[VersionRepositoryAdapterTest]
     end
 
     subgraph Integration["🔬 Testes de Integração"]
         CVSIT[CreateVersionServiceIT]
         SVSIT[SynchronizeVersionsServiceIT]
         FVNSIT[FindVersionNumberServiceIT]
+        VCAIT[VersionClientAdapterIT]
+        VRAIT[VersionRepositoryAdapterIT]
     end
 
     subgraph Support["📦 Suporte"]
@@ -296,6 +300,8 @@ graph LR
 | `CreateVersionService` | ✅ | ✅ | Completo |
 | `SynchronizeVersionsService` | ✅ | ✅ | Completo |
 | `FindVersionByNumberService` | - | ✅ | Parcial |
+| `VersionRepositoryAdapter` | ✅ | ✅ | Completo |
+| `VersionClientAdapter` | - | ✅ | Parcial |
 | `FindAllChampionService` | - | - | Pendente |
 | Controllers | - | - | Pendente |
 

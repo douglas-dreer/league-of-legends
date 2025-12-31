@@ -106,5 +106,5 @@ Para diagramas completos, consulte [ARQUITETURA.md](ARQUITETURA.md).
 ---
 
 > 📅 **Última atualização:** 31 de Dezembro de 2025  
-> 📌 **Versão do Projeto:** 1.2.0
+> 📌 **Versão do Projeto:** 1.3.0
 
