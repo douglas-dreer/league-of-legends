@@ -1,6 +1,5 @@
 package io.github.riotgames.leagueoflegends.infrastructure.output.client
 
-import io.github.riotgames.leagueoflegends.domain.model.Version
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 
