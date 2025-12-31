@@ -2,6 +2,5 @@ package io.github.riotgames.leagueoflegends.infrastructure.input.controller.resp
 
 data class VersionResponse(
     val id: Long,
-    val number: String,
-    val isCurrent: Boolean
+    val number: String
 )

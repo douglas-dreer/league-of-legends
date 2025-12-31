@@ -13,10 +13,6 @@ class VersionEntity(
 
     @Column(nullable = false, unique = true)
     var number: String = "",
-
-    @Column(name = "is_current")
-    var isCurrent: Boolean = false
-
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,6 +29,6 @@ class VersionEntity(
     }
 
     override fun toString(): String {
-        return "VersionEntity(id=$id, number='$number', isCurrent=$isCurrent)"
+        return "VersionEntity(id=$id, number='$number')"
     }
 }

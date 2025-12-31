@@ -3,4 +3,4 @@ package io.github.riotgames.leagueoflegends.infrastructure.input.controller.mapp
 import io.github.riotgames.leagueoflegends.domain.model.Version
 import io.github.riotgames.leagueoflegends.infrastructure.input.controller.request.CreateVersionRequest
 
-fun CreateVersionRequest.toDomain() = Version(number = this.number, isCurrent = false)
+fun CreateVersionRequest.toDomain() = Version(number = this.number)

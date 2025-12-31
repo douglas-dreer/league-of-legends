@@ -1,6 +1,6 @@
 package io.github.riotgames.leagueoflegends.infrastructure.output.adapter
 
-    import io.github.riotgames.leagueoflegends.domain.mapper.toChampion
+import io.github.riotgames.leagueoflegends.domain.mapper.toChampion
 import io.github.riotgames.leagueoflegends.domain.model.Champion
 import io.github.riotgames.leagueoflegends.domain.port.output.ChampionClientPort
 import io.github.riotgames.leagueoflegends.domain.port.output.VersionRepositoryPort
@@ -27,7 +27,7 @@ class ChampionClientAdapter(
      * @throws IllegalStateException if the current version is not found.
      */
     private fun getLastVersion(): String {
-        val versionCurrent =  versionRepository.findCurrentVersion()?.number
+        val versionCurrent =  versionRepository.getLastVersion()?.number
         return versionCurrent ?: throw IllegalStateException("Current version not found.")
     }
 }

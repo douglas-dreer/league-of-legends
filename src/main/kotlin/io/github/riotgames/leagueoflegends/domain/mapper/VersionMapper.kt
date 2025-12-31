@@ -8,22 +8,19 @@ import io.github.riotgames.leagueoflegends.infrastructure.persistence.entity.Ver
 fun VersionEntity.toDomain(): Version {
     return Version(
         id = this.id,
-        number = this.number,
-        isCurrent = this.isCurrent,
+        number = this.number
     )
 }
 
 fun Version.toEntity(): VersionEntity {
     return VersionEntity(
-        number = this.number,
-        isCurrent = this.isCurrent,
+        number = this.number
     )
 }
 
 fun Version.toResponse(): VersionResponse {
     return VersionResponse(
        id = this.id ?: 0,
-       number = this.number,
-       isCurrent = this.isCurrent,
+       number = this.number
     )
 }

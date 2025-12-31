@@ -11,6 +11,11 @@ import org.springframework.stereotype.Component
 class VersionRepositoryAdapter(
     private val repository: VersionJpaRepository
 ): VersionRepositoryPort {
+    override fun getLastVersion(): Version? {
+        return repository.findFirstByOrderByIdDesc()
+            ?.toDomain()
+    }
+
     override fun save(version: Version): Version {
         return repository
             .save(version.toEntity())
@@ -21,12 +26,6 @@ class VersionRepositoryAdapter(
         return repository
             .findAll()
             .map { it.toDomain() }
-    }
-
-    override fun findCurrentVersion(): Version? {
-        return repository
-            .findByIsCurrentTrue()
-            ?.toDomain()
     }
 
     override fun update(version: Version): Version {
@@ -49,13 +48,5 @@ class VersionRepositoryAdapter(
     override fun existVersionByNumber(versionNumber: String): Boolean {
         return repository
             .existsVersionEntityByNumber(versionNumber)
-    }
-
-    override fun setVersionAsCurrent(versionId: Long) {
-        repository.setVersionAsCurrent(versionId)
-    }
-
-    override fun setPrevisionVersionAsNotCurrent() {
-        repository.setPrevisionVersionAsNotCurrent()
     }
 }
