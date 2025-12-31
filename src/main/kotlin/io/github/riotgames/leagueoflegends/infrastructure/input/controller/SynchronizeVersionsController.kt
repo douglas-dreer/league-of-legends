@@ -5,8 +5,7 @@ import io.github.riotgames.leagueoflegends.infrastructure.input.controller.respo
 import org.springframework.http.ResponseEntity
 import org.springframework.http.ResponseEntity.ok
 import org.springframework.http.ResponseEntity.status
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -16,7 +15,7 @@ class SynchronizeVersionsController(
     private final val useCase: SynchronizeVersionsUseCase
 ) {
 
-    @PutMapping
+    @PostMapping
     fun execute(): ResponseEntity<SyncApiResponse> {
         val quantitySynchronized = useCase.execute()
 
