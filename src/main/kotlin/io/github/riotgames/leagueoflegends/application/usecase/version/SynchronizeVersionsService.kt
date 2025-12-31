@@ -6,8 +6,6 @@ import io.github.riotgames.leagueoflegends.domain.model.VersionImportedEvent
 import io.github.riotgames.leagueoflegends.domain.port.input.version.CreateVersionUseCase
 import io.github.riotgames.leagueoflegends.domain.port.input.version.SynchronizeVersionsUseCase
 import io.github.riotgames.leagueoflegends.domain.port.output.VersionClientPort
-import io.github.riotgames.leagueoflegends.domain.port.output.VersionRepositoryPort
-import io.github.riotgames.leagueoflegends.infrastructure.output.client.VersionClient
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -28,7 +26,7 @@ class SynchronizeVersionsService(
         logger.info("Starting synchronization...")
 
         val versionList = client.findAllVersions().let { versions ->
-            validator.isAlreadyRegistered(versions)
+            validator.filterAlreadyRegistered(versions)
         }.reversed()
 
 

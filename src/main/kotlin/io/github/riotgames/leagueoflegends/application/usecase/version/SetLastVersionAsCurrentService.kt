@@ -2,7 +2,6 @@ package io.github.riotgames.leagueoflegends.application.usecase.version
 
 import io.github.riotgames.leagueoflegends.application.exception.VersionNotFoundRegisteredException
 import io.github.riotgames.leagueoflegends.application.validation.VersionValidator
-import io.github.riotgames.leagueoflegends.domain.model.Version
 import io.github.riotgames.leagueoflegends.domain.port.input.version.SetLastVersionAsCurrentUseCase
 import io.github.riotgames.leagueoflegends.domain.port.output.VersionRepositoryPort
 import jakarta.transaction.Transactional
